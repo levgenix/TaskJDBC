@@ -17,7 +17,9 @@ public class Util {
         try {
             if (null == conn || conn.isClosed()) {
                 Properties props = getProps();
-                conn = DriverManager.getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"));
+                conn = DriverManager
+                        .getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"));
+                conn.setAutoCommit(false);
             }
         } catch (SQLException | IOException e) {
             e.printStackTrace();

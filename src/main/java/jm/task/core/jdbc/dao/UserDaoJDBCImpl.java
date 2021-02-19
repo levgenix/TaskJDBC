@@ -9,7 +9,7 @@ import java.util.List;
 
 // Обработка всех исключений, связанных с работой с базой данных должна находиться в dao
 public class UserDaoJDBCImpl implements UserDao {
-    private static Connection conn = Util.getConnection();
+    private static final Connection conn = Util.getConnection();
 
     public UserDaoJDBCImpl() {
 
@@ -37,7 +37,6 @@ public class UserDaoJDBCImpl implements UserDao {
     // Добавление User в таблицу
     public void saveUser(String name, String lastName, byte age) {
         try (PreparedStatement pstm = conn.prepareStatement("INSERT INTO users (name, last_name, age) VALUES (?, ?, ?)")) {
-            conn.setAutoCommit(false);
             pstm.setString(1, name);
             pstm.setString(2, lastName);
             pstm.setByte(3, age);
@@ -50,34 +49,21 @@ public class UserDaoJDBCImpl implements UserDao {
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
-        } finally {
-            try {
-                conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 
     // Удаление User из таблицы ( по id )
     public void removeUserById(long id) {
         try (PreparedStatement pstm = conn.prepareStatement("DELETE FROM users WHERE id = ?")) {
-            conn.setAutoCommit(false);
             pstm.setLong(1, id);
             pstm.executeUpdate();
             conn.commit();
         } catch (SQLException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             try {
                 conn.rollback();
             } catch (SQLException ex) {
                 ex.printStackTrace();
-            }
-        } finally {
-            try {
-                conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -103,7 +89,6 @@ public class UserDaoJDBCImpl implements UserDao {
     // Очистка содержания таблицы
     public void cleanUsersTable() {
         try (Statement statement = conn.createStatement()) {
-            conn.setAutoCommit(false);
             statement.executeUpdate("TRUNCATE TABLE users");
             conn.commit();
         } catch (SQLException e) {
@@ -112,12 +97,6 @@ public class UserDaoJDBCImpl implements UserDao {
                 conn.rollback();
             } catch (SQLException ex) {
                 ex.printStackTrace();
-            }
-        } finally {
-            try {
-                conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
     }
