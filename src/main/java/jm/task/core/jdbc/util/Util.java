@@ -1,5 +1,12 @@
 package jm.task.core.jdbc.util;
 
+import jm.task.core.jdbc.model.User;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Environment;
+import org.hibernate.metamodel.MetadataSources;
+import org.hibernate.service.ServiceRegistry;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -11,6 +18,8 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class Util {
+    // == JDBC
+
     private static Connection conn = Util.getConnection();
 
     public static Connection getConnection() {
@@ -36,4 +45,25 @@ public class Util {
         }
     }
 
+    // == Hibernate
+
+    public static SessionFactory getSessionFactory() throws IOException {
+        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(getProps())
+                .applySetting(Environment.USE_SQL_COMMENTS, false)
+                .applySetting(Environment.SHOW_SQL, false)
+                //.applySetting(Environment.USE_NEW_ID_GENERATOR_MAPPINGS, "true")
+                .applySetting(Environment.HBM2DDL_AUTO, "update") //update create-drop none
+                .build();
+        return makeSessionFactory(serviceRegistry);
+    }
+
+    private static SessionFactory makeSessionFactory(ServiceRegistry serviceRegistry) {
+        return new MetadataSources(serviceRegistry)
+                .addAnnotatedClass(User.class)
+                .getMetadataBuilder()
+                .build()
+                .getSessionFactoryBuilder()
+                .build();
+    }
 }
