@@ -20,38 +20,28 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class Util {
-    // == JDBC
+    private static final Util instance = new Util();
+    private static Connection conn;
+    private static SessionFactory sessionFactory;
+    private static Metadata metadata;
 
-    private static Connection conn = null;
-    private static SessionFactory sessionFactory = null;
-    private static Metadata metadata = null;
+    public static Util getInstance() {
+        return instance;
+    }
 
-    public static Connection getConnection() {
+    private Util() {
+        // == JDBC
         try {
             if (null == conn || conn.isClosed()) {
                 Properties props = getProps();
-                conn = DriverManager.getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"));
+                conn = DriverManager
+                        .getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"));
             }
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 
-        return conn;
-    }
-
-    private static Properties getProps() {
-        Properties props = new Properties();
-        try (InputStream in = Files.newInputStream(Paths.get(Util.class.getResource("/database.properties").toURI()))) {
-            props.load(in);
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-        return props;
-    }
-
-    // == Hibernate
-
-    public static SessionFactory getSessionFactory() {
+        // == Hibernate
         if (null == sessionFactory) {
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySetting(Environment.USE_SQL_COMMENTS, false)
@@ -60,7 +50,27 @@ public class Util {
                     .build();
             sessionFactory = makeSessionFactory(serviceRegistry);
         }
+    }
 
+    // == JDBC
+
+    public Connection getConnection() {
+        return conn;
+    }
+
+    private static Properties getProps() throws IOException {
+        Properties props = new Properties();
+        try (InputStream in = Files.newInputStream(Paths.get(Util.class.getResource("/database.properties").toURI()))) {
+            props.load(in);
+        } catch (IOException | URISyntaxException e) {
+            throw new IOException("Database config file not found", e);
+        }
+        return props;
+    }
+
+    // == Hibernate
+
+    public SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
@@ -69,10 +79,10 @@ public class Util {
                 .addAnnotatedClass(User.class)
                 .getMetadataBuilder()
                 .build();
-                return  metadata.buildSessionFactory();
+        return metadata.buildSessionFactory();
     }
 
-    public static String getTableName(String entityName) throws NullPointerException {
+    public String getTableName(String entityName) throws NullPointerException {
         if (null == metadata) {
             throw new NullPointerException("Metadata is null");
         }
