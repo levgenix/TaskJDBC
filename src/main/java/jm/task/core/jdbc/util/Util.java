@@ -9,39 +9,19 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.service.ServiceRegistry;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Properties;
-
 public class Util {
-    private static final Util instance = new Util();
-    private static Connection conn;
+    private static Util instance = null;
     private static SessionFactory sessionFactory;
     private static Metadata metadata;
 
     public static Util getInstance() {
+        if (null == instance) {
+            instance = new Util();
+        }
         return instance;
     }
 
     private Util() {
-        // == JDBC
-        try {
-            if (null == conn || conn.isClosed()) {
-                Properties props = getProps();
-                conn = DriverManager
-                        .getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"));
-            }
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-        }
-
-        // == Hibernate
         if (null == sessionFactory) {
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySetting(Environment.USE_SQL_COMMENTS, false)
@@ -51,24 +31,6 @@ public class Util {
             sessionFactory = makeSessionFactory(serviceRegistry);
         }
     }
-
-    // == JDBC
-
-    public Connection getConnection() {
-        return conn;
-    }
-
-    private static Properties getProps() throws IOException {
-        Properties props = new Properties();
-        try (InputStream in = Files.newInputStream(Paths.get(Util.class.getResource("/database.properties").toURI()))) {
-            props.load(in);
-        } catch (IOException | URISyntaxException e) {
-            throw new IOException("Database config file not found", e);
-        }
-        return props;
-    }
-
-    // == Hibernate
 
     public SessionFactory getSessionFactory() {
         return sessionFactory;
