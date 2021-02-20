@@ -12,7 +12,7 @@ import java.util.Properties;
 
 public class Util {
     private static Connection conn = null;
-    private static final Util instance = new Util();
+    private static Util instance = null;
 
     private Util() {
         try {
@@ -27,6 +27,9 @@ public class Util {
     }
 
     public static Util getInstance() {
+        if (null == instance) {
+            instance = new Util();
+        }
         return instance;
     }
 
@@ -43,5 +46,4 @@ public class Util {
             throw new IOException("Database config file not found", e);
         }
     }
-
 }
