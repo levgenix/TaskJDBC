@@ -12,8 +12,9 @@ import java.util.Properties;
 
 public class Util {
     private static Connection conn = null;
+    private static final Util instance = new Util();
 
-    public static Connection getConnection() {
+    private Util() {
         try {
             if (null == conn || conn.isClosed()) {
                 Properties props = getProps();
@@ -23,7 +24,13 @@ public class Util {
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
+    }
 
+    public static Util getInstance() {
+        return instance;
+    }
+
+    public Connection getConnection() {
         return conn;
     }
 

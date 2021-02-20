@@ -9,7 +9,7 @@ import java.util.List;
 
 // Обработка всех исключений, связанных с работой с базой данных должна находиться в dao
 public class UserDaoJDBCImpl implements UserDao {
-    private static final Connection conn = Util.getConnection();
+    private static final Connection conn = Util.getInstance().getConnection();
 
     public UserDaoJDBCImpl() {
 
